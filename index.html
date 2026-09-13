@@ -119,7 +119,7 @@
       <div class="toolbar-group" role="group" aria-label="Display mode">
         <span class="toolbar-label" aria-hidden="true">View</span>
         <div class="toolbar-controls toolbar-segment" data-control-set="display">
-          <button type="button" id="view-both" aria-pressed="true" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Both</button>
+          <button type="button" id="view-both" aria-pressed="true" aria-controls="outer-panel inner-panel">Both</button>
           <button type="button" id="view-outer" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Outer</button>
           <button type="button" id="view-inner" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Inner</button>
         </div>
@@ -146,7 +146,7 @@
         </div>
       </div>
     </div>
-    <section class="workspace" aria-label="Device previews">
+    <section class="workspace" id="preview-workspace" data-view-mode="both" aria-label="Device previews">
       <article class="device-panel" id="outer-panel" aria-labelledby="outer-title">
         <h2 id="outer-title">Outer display</h2><p>Compact state for prioritized content and essential actions.</p>
         <div class="device-stage device-stage--outer" id="outer-stage" aria-label="Outer screenshot preview">
@@ -194,6 +194,12 @@
       const innerInput = document.getElementById('inner-upload');
       const innerStage = document.getElementById('inner-stage');
       const innerScreen = document.getElementById('inner-screen');
+      const previewWorkspace = document.getElementById('preview-workspace');
+      const outerPanel = document.getElementById('outer-panel');
+      const innerPanel = document.getElementById('inner-panel');
+      const viewBothButton = document.getElementById('view-both');
+      const viewOuterButton = document.getElementById('view-outer');
+      const viewInnerButton = document.getElementById('view-inner');
       const fillModeButton = document.getElementById('fill-mode');
       const fitModeButton = document.getElementById('fit-mode');
       const status = document.getElementById('app-status');
@@ -202,9 +208,11 @@
       let outerObjectUrl = null;
       let innerObjectUrl = null;
       let previewFitMode = 'fill';
+      let displayMode = 'both';
       function validateImageFile(file, displayName, input) { if (allowedImageTypes.has(file.type)) return true; input.value = ''; status.textContent = `${displayName} screenshot rejected. Choose a ${supportedTypeLabel} image.`; return false; }
       function applyPreviewFitMode(image) { if (image) image.dataset.fitMode = previewFitMode; }
       function applyCurrentFitModeToPreviews() { applyPreviewFitMode(outerScreen.querySelector('img')); applyPreviewFitMode(innerScreen.querySelector('img')); }
+      function setBothMode() { displayMode = 'both'; previewWorkspace.dataset.viewMode = displayMode; outerPanel.hidden = false; innerPanel.hidden = false; viewBothButton.setAttribute('aria-pressed', 'true'); viewOuterButton.setAttribute('aria-pressed', 'false'); viewInnerButton.setAttribute('aria-pressed', 'false'); status.textContent = 'Both view active. Outer and Inner previews remain visible with their current image state.'; }
       function setFillMode() { previewFitMode = 'fill'; fillModeButton.setAttribute('aria-pressed', 'true'); fitModeButton.setAttribute('aria-pressed', 'false'); applyCurrentFitModeToPreviews(); status.textContent = 'Fill mode active. Screenshots cover each preview without changing their aspect ratio.'; }
       function setFitMode() { previewFitMode = 'fit'; fillModeButton.setAttribute('aria-pressed', 'false'); fitModeButton.setAttribute('aria-pressed', 'true'); applyCurrentFitModeToPreviews(); status.textContent = 'Fit mode active. Full screenshots stay visible without changing their aspect ratio.'; }
       function revokeOuterObjectUrl() { if (outerObjectUrl) { URL.revokeObjectURL(outerObjectUrl); outerObjectUrl = null; } }
@@ -213,6 +221,7 @@
       function restoreInnerUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'inner-upload-control'; label.htmlFor = 'inner-upload'; label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; innerInput.setAttribute('aria-describedby', 'inner-upload-hint'); label.appendChild(innerInput); innerScreen.replaceChildren(label); innerScreen.classList.remove('has-image'); }
       function renderOuterFile(file) { revokeOuterObjectUrl(); outerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Outer display screenshot preview'; image.src = outerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { outerScreen.replaceChildren(image); outerScreen.classList.add('has-image'); status.textContent = `Outer screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeOuterObjectUrl(); outerInput.value = ''; restoreOuterUploadControl(); status.textContent = 'The Outer screenshot could not be decoded. Choose another image.'; }, { once: true }); }
       function renderInnerFile(file) { revokeInnerObjectUrl(); innerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Inner display screenshot preview'; image.src = innerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { innerScreen.replaceChildren(image); innerScreen.classList.add('has-image'); status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeInnerObjectUrl(); innerInput.value = ''; restoreInnerUploadControl(); status.textContent = 'The Inner screenshot could not be decoded. Choose another image.'; }, { once: true }); }
+      viewBothButton.addEventListener('click', setBothMode);
       fillModeButton.addEventListener('click', setFillMode); fitModeButton.addEventListener('click', setFitMode);
       outerInput.addEventListener('change', () => { const [file] = outerInput.files || []; if (!file || !validateImageFile(file, 'Outer', outerInput)) return; renderOuterFile(file); });
       innerInput.addEventListener('change', () => { const [file] = innerInput.files || []; if (!file || !validateImageFile(file, 'Inner', innerInput)) return; renderInnerFile(file); });
