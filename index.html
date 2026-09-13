@@ -32,6 +32,7 @@
     .device-stage.has-image { padding: 0; border-style: solid; background: #111318; }
     .device-stage img { width: 100%; height: 100%; min-height: 360px; display: block; }
     .device-stage img[data-fit-mode="fill"] { object-fit: cover; }
+    .device-stage img[data-fit-mode="fit"] { object-fit: contain; }
     .upload-control { display: grid; gap: 8px; justify-items: center; }
     .upload-control input { max-width: 100%; }
     .utility { margin: 0 0 32px; padding: 16px; background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; }
@@ -60,7 +61,7 @@
       <button type="button" aria-pressed="false">Outer</button>
       <button type="button" aria-pressed="false">Inner</button>
       <button type="button" id="fill-mode" aria-pressed="true">Fill</button>
-      <button type="button" id="fit-mode" aria-pressed="false" disabled aria-disabled="true">Fit</button>
+      <button type="button" id="fit-mode" aria-pressed="false">Fit</button>
       <button type="button" aria-pressed="false">Crease</button>
       <button type="button" aria-pressed="false">App icons</button>
       <button type="button">Clear all</button>
@@ -112,6 +113,7 @@
       const innerInput = document.getElementById('inner-upload');
       const innerStage = document.getElementById('inner-stage');
       const fillModeButton = document.getElementById('fill-mode');
+      const fitModeButton = document.getElementById('fit-mode');
       const status = document.getElementById('app-status');
       const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
       const supportedTypeLabel = 'PNG, JPEG, or WebP';
@@ -131,12 +133,25 @@
         image.dataset.fitMode = previewFitMode;
       }
 
+      function applyCurrentFitModeToPreviews() {
+        applyPreviewFitMode(outerStage.querySelector('img'));
+        applyPreviewFitMode(innerStage.querySelector('img'));
+      }
+
       function setFillMode() {
         previewFitMode = 'fill';
         fillModeButton.setAttribute('aria-pressed', 'true');
-        applyPreviewFitMode(outerStage.querySelector('img'));
-        applyPreviewFitMode(innerStage.querySelector('img'));
+        fitModeButton.setAttribute('aria-pressed', 'false');
+        applyCurrentFitModeToPreviews();
         status.textContent = 'Fill mode active. Screenshots cover each preview without changing their aspect ratio.';
+      }
+
+      function setFitMode() {
+        previewFitMode = 'fit';
+        fillModeButton.setAttribute('aria-pressed', 'false');
+        fitModeButton.setAttribute('aria-pressed', 'true');
+        applyCurrentFitModeToPreviews();
+        status.textContent = 'Fit mode active. Full screenshots stay visible without changing their aspect ratio.';
       }
 
       function revokeOuterObjectUrl() {
@@ -218,6 +233,7 @@
       }
 
       fillModeButton.addEventListener('click', setFillMode);
+      fitModeButton.addEventListener('click', setFitMode);
 
       outerInput.addEventListener('change', () => {
         const [file] = outerInput.files || [];
