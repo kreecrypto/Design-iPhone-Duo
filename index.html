@@ -80,7 +80,7 @@
         <h2 id="inner-title">Inner display</h2>
         <p>Expanded state for additional hierarchy, context, and detail.</p>
         <div class="device-stage" id="inner-stage">
-          <label class="upload-control" for="inner-upload">
+          <label class="upload-control" for="inner-upload" id="inner-upload-control">
             <strong>Choose an Inner screenshot</strong>
             <span>PNG, JPEG, or WebP. Processing stays in this browser.</span>
             <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp">
@@ -106,13 +106,23 @@
     (() => {
       const outerInput = document.getElementById('outer-upload');
       const outerStage = document.getElementById('outer-stage');
+      const innerInput = document.getElementById('inner-upload');
+      const innerStage = document.getElementById('inner-stage');
       const status = document.getElementById('app-status');
       let outerObjectUrl = null;
+      let innerObjectUrl = null;
 
       function revokeOuterObjectUrl() {
         if (outerObjectUrl) {
           URL.revokeObjectURL(outerObjectUrl);
           outerObjectUrl = null;
+        }
+      }
+
+      function revokeInnerObjectUrl() {
+        if (innerObjectUrl) {
+          URL.revokeObjectURL(innerObjectUrl);
+          innerObjectUrl = null;
         }
       }
 
@@ -125,6 +135,17 @@
         label.appendChild(outerInput);
         outerStage.replaceChildren(label);
         outerStage.classList.remove('has-image');
+      }
+
+      function restoreInnerUploadControl() {
+        const label = document.createElement('label');
+        label.className = 'upload-control';
+        label.id = 'inner-upload-control';
+        label.htmlFor = 'inner-upload';
+        label.innerHTML = '<strong>Choose an Inner screenshot</strong><span>PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.appendChild(innerInput);
+        innerStage.replaceChildren(label);
+        innerStage.classList.remove('has-image');
       }
 
       function renderOuterFile(file) {
@@ -147,13 +168,42 @@
         }, { once: true });
       }
 
+      function renderInnerFile(file) {
+        revokeInnerObjectUrl();
+        innerObjectUrl = URL.createObjectURL(file);
+
+        const image = new Image();
+        image.alt = 'Uploaded Inner display screenshot preview';
+        image.src = innerObjectUrl;
+        image.addEventListener('load', () => {
+          innerStage.replaceChildren(image);
+          innerStage.classList.add('has-image');
+          status.textContent = 'Inner screenshot loaded locally.';
+        }, { once: true });
+        image.addEventListener('error', () => {
+          revokeInnerObjectUrl();
+          innerInput.value = '';
+          restoreInnerUploadControl();
+          status.textContent = 'The Inner screenshot could not be decoded. Choose another image.';
+        }, { once: true });
+      }
+
       outerInput.addEventListener('change', () => {
         const [file] = outerInput.files || [];
         if (!file) return;
         renderOuterFile(file);
       });
 
-      window.addEventListener('pagehide', revokeOuterObjectUrl);
+      innerInput.addEventListener('change', () => {
+        const [file] = innerInput.files || [];
+        if (!file) return;
+        renderInnerFile(file);
+      });
+
+      window.addEventListener('pagehide', () => {
+        revokeOuterObjectUrl();
+        revokeInnerObjectUrl();
+      });
     })();
   </script>
 </body>
