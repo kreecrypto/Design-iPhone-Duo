@@ -1,4 +1,4 @@
-name: Privacy, upload, acceptance, and frame guards
+name: Privacy, upload, acceptance, frame, and toolbar guards
 
 on:
   push:
@@ -11,6 +11,7 @@ on:
       - tests/acceptance-contract.test.mjs
       - tests/outer-frame.test.mjs
       - tests/inner-frame.test.mjs
+      - tests/toolbar-controls.test.mjs
       - .github/workflows/privacy-local-only.yml
   pull_request:
     paths:
@@ -21,6 +22,7 @@ on:
       - tests/acceptance-contract.test.mjs
       - tests/outer-frame.test.mjs
       - tests/inner-frame.test.mjs
+      - tests/toolbar-controls.test.mjs
       - .github/workflows/privacy-local-only.yml
 
 permissions:
@@ -47,3 +49,5 @@ jobs:
         run: node tests/outer-frame.test.mjs
       - name: Verify Inner unfolded frame structure
         run: node tests/inner-frame.test.mjs
+      - name: Verify toolbar control structure and states
+        run: node tests/toolbar-controls.test.mjs
