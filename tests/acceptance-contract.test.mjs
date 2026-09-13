@@ -14,7 +14,7 @@ for (const required of [
   '320px width without horizontal scrolling',
   'browser fallback guidance',
   'keyboard operable with visible focus',
-  'not persisted in localStorage/IndexedDB',
+  'No uploaded screenshot bytes are persisted in localStorage/IndexedDB by default',
   'not an official Apple product',
   'MVP release is blocked until every P0 criterion above has passing evidence',
 ]) assert.ok(doc.includes(required), `Missing acceptance contract clause: ${required}`);
