@@ -1,18 +1,22 @@
-name: Privacy and upload guards
+name: Privacy, upload, and acceptance guards
 
 on:
   push:
     branches: [main]
     paths:
       - index.html
+      - docs/SUCCESS_CRITERIA.md
       - tests/privacy-network.test.mjs
       - tests/upload-matrix.test.mjs
+      - tests/acceptance-contract.test.mjs
       - .github/workflows/privacy-local-only.yml
   pull_request:
     paths:
       - index.html
+      - docs/SUCCESS_CRITERIA.md
       - tests/privacy-network.test.mjs
       - tests/upload-matrix.test.mjs
+      - tests/acceptance-contract.test.mjs
       - .github/workflows/privacy-local-only.yml
 
 permissions:
@@ -33,3 +37,5 @@ jobs:
         run: node tests/privacy-network.test.mjs
       - name: Verify upload format matrix
         run: node tests/upload-matrix.test.mjs
+      - name: Verify MVP acceptance contract
+        run: node tests/acceptance-contract.test.mjs
