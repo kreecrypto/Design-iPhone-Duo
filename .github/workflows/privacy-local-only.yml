@@ -1,4 +1,4 @@
-name: Privacy local-only guard
+name: Privacy and upload guards
 
 on:
   push:
@@ -6,18 +6,20 @@ on:
     paths:
       - index.html
       - tests/privacy-network.test.mjs
+      - tests/upload-matrix.test.mjs
       - .github/workflows/privacy-local-only.yml
   pull_request:
     paths:
       - index.html
       - tests/privacy-network.test.mjs
+      - tests/upload-matrix.test.mjs
       - .github/workflows/privacy-local-only.yml
 
 permissions:
   contents: read
 
 jobs:
-  privacy-network:
+  browser-local-guards:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -29,3 +31,5 @@ jobs:
           node-version: 22
       - name: Verify screenshot handling stays local-only
         run: node tests/privacy-network.test.mjs
+      - name: Verify upload format matrix
+        run: node tests/upload-matrix.test.mjs
