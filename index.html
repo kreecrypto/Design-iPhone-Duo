@@ -26,7 +26,9 @@
     .device-panel { background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; padding: 16px; }
     .device-panel h2 { margin: 0 0 4px; font-size: 1.1rem; }
     .device-panel p { margin: 0 0 16px; color: #666d78; }
-    .device-stage { min-height: 360px; display: grid; place-items: center; border: 1px dashed #b9c0c9; border-radius: 14px; background: #fafbfc; padding: 16px; text-align: center; }
+    .device-stage { min-height: 360px; display: grid; place-items: center; border: 1px dashed #b9c0c9; border-radius: 14px; background: #fafbfc; padding: 16px; text-align: center; overflow: hidden; }
+    .device-stage.has-image { padding: 0; border-style: solid; background: #111318; }
+    .device-stage img { width: 100%; height: 100%; min-height: 360px; object-fit: cover; display: block; }
     .upload-control { display: grid; gap: 8px; justify-items: center; }
     .upload-control input { max-width: 100%; }
     .utility { margin: 0 0 32px; padding: 16px; background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; }
@@ -37,7 +39,7 @@
     @media (max-width: 760px) {
       .shell { width: min(100% - 24px, 720px); }
       .workspace { grid-template-columns: 1fr; gap: 16px; }
-      .device-stage { min-height: 300px; }
+      .device-stage, .device-stage img { min-height: 300px; }
     }
   </style>
 </head>
@@ -66,7 +68,7 @@
         <h2 id="outer-title">Outer display</h2>
         <p>Compact state for prioritized content and essential actions.</p>
         <div class="device-stage" id="outer-stage">
-          <label class="upload-control" for="outer-upload">
+          <label class="upload-control" for="outer-upload" id="outer-upload-control">
             <strong>Choose an Outer screenshot</strong>
             <span>PNG, JPEG, or WebP. Processing stays in this browser.</span>
             <input id="outer-upload" name="outer-upload" type="file" accept="image/png,image/jpeg,image/webp">
@@ -99,5 +101,60 @@
   <footer class="site-footer">
     <div class="shell">Independent concept/mockup project. Not an official Apple product or website.</div>
   </footer>
+
+  <script>
+    (() => {
+      const outerInput = document.getElementById('outer-upload');
+      const outerStage = document.getElementById('outer-stage');
+      const status = document.getElementById('app-status');
+      let outerObjectUrl = null;
+
+      function revokeOuterObjectUrl() {
+        if (outerObjectUrl) {
+          URL.revokeObjectURL(outerObjectUrl);
+          outerObjectUrl = null;
+        }
+      }
+
+      function restoreOuterUploadControl() {
+        const label = document.createElement('label');
+        label.className = 'upload-control';
+        label.id = 'outer-upload-control';
+        label.htmlFor = 'outer-upload';
+        label.innerHTML = '<strong>Choose an Outer screenshot</strong><span>PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.appendChild(outerInput);
+        outerStage.replaceChildren(label);
+        outerStage.classList.remove('has-image');
+      }
+
+      function renderOuterFile(file) {
+        revokeOuterObjectUrl();
+        outerObjectUrl = URL.createObjectURL(file);
+
+        const image = new Image();
+        image.alt = 'Uploaded Outer display screenshot preview';
+        image.src = outerObjectUrl;
+        image.addEventListener('load', () => {
+          outerStage.replaceChildren(image);
+          outerStage.classList.add('has-image');
+          status.textContent = 'Outer screenshot loaded locally.';
+        }, { once: true });
+        image.addEventListener('error', () => {
+          revokeOuterObjectUrl();
+          outerInput.value = '';
+          restoreOuterUploadControl();
+          status.textContent = 'The Outer screenshot could not be decoded. Choose another image.';
+        }, { once: true });
+      }
+
+      outerInput.addEventListener('change', () => {
+        const [file] = outerInput.files || [];
+        if (!file) return;
+        renderOuterFile(file);
+      });
+
+      window.addEventListener('pagehide', revokeOuterObjectUrl);
+    })();
+  </script>
 </body>
 </html>
