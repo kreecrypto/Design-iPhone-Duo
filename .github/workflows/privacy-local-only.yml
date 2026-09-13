@@ -1,4 +1,4 @@
-name: Privacy, upload, and acceptance guards
+name: Privacy, upload, acceptance, and frame guards
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - tests/privacy-network.test.mjs
       - tests/upload-matrix.test.mjs
       - tests/acceptance-contract.test.mjs
+      - tests/outer-frame.test.mjs
       - .github/workflows/privacy-local-only.yml
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - tests/privacy-network.test.mjs
       - tests/upload-matrix.test.mjs
       - tests/acceptance-contract.test.mjs
+      - tests/outer-frame.test.mjs
       - .github/workflows/privacy-local-only.yml
 
 permissions:
@@ -39,3 +41,5 @@ jobs:
         run: node tests/upload-matrix.test.mjs
       - name: Verify MVP acceptance contract
         run: node tests/acceptance-contract.test.mjs
+      - name: Verify Outer device frame structure
+        run: node tests/outer-frame.test.mjs
