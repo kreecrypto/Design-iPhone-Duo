@@ -1,0 +1,79 @@
+:root {
+  /* Typography */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.9rem;
+  --font-size-md: 0.95rem;
+  --font-size-lg: 1.1rem;
+  --font-size-title-min: 1.5rem;
+  --font-size-title-max: 2.25rem;
+  --font-weight-medium: 650;
+  --font-weight-bold: 700;
+  --line-height-tight: 1;
+  --letter-spacing-label: 0.04em;
+
+  /* Spacing */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 18px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 28px;
+  --space-11: 32px;
+  --touch-target-min: 44px;
+
+  /* Radius */
+  --radius-control: 10px;
+  --radius-segment: 12px;
+  --radius-stage: 14px;
+  --radius-panel: 18px;
+  --radius-inner-screen: 26px;
+  --radius-inner-frame: 34px;
+  --radius-outer-screen: 34px;
+  --radius-outer-frame: 42px;
+  --radius-pill: 999px;
+
+  /* Color */
+  --color-page: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #fafbfc;
+  --color-surface-muted: #eef1f4;
+  --color-stage-gradient-start: #fbfcfd;
+  --color-stage-gradient-end: #f2f4f7;
+  --color-text: #111318;
+  --color-text-control: #20242b;
+  --color-text-muted: #5d6470;
+  --color-text-secondary: #666d78;
+  --color-text-tertiary: #6a717c;
+  --color-border: #dfe3e8;
+  --color-border-control: #c9ced6;
+  --color-border-segment: #d5dae1;
+  --color-border-stage: #b9c0c9;
+  --color-device: #17191d;
+  --color-preview-dark: #111318;
+  --color-switch-off: #c6ccd5;
+  --color-focus: #0b57d0;
+  --color-focus-halo: #ffffff;
+
+  /* Shadow */
+  --shadow-selected: 0 1px 2px rgba(17, 19, 24, 0.08), inset 0 0 0 1px #111318;
+  --shadow-device: 0 18px 45px rgba(17, 19, 24, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  --shadow-focus: 0 0 0 2px var(--color-focus-halo), 0 0 0 5px var(--color-focus);
+
+  /* Layout / responsive primitives */
+  --content-max: 1180px;
+  --page-gutter-mobile: 16px;
+  --page-gutter-tablet: 24px;
+  --page-gutter-wide: 32px;
+  --breakpoint-mobile-s-max: 374px;
+  --breakpoint-mobile-max: 767px;
+  --breakpoint-tablet-max: 1023px;
+
+  /* Compatibility aliases for the current single-file prototype. */
+  --focus-ring: var(--color-focus);
+  --focus-halo: var(--color-focus-halo);
+}
