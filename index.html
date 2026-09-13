@@ -22,10 +22,22 @@
     .site-header { padding: 24px 0 16px; }
     .site-header h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.25rem); }
     .site-header p { margin: 8px 0 0; color: #5d6470; }
-    .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 16px; }
-    .toolbar button { white-space: nowrap; border: 1px solid #c9ced6; background: #fff; border-radius: 10px; padding: 0 14px; }
-    .toolbar button[aria-pressed="true"] { border-color: #111318; box-shadow: inset 0 0 0 1px #111318; }
-    .toolbar button:disabled { cursor: not-allowed; opacity: .5; }
+    .toolbar { display: flex; align-items: end; gap: 12px; overflow-x: auto; padding: 12px 2px 18px; scrollbar-width: thin; }
+    .toolbar-group { flex: 0 0 auto; display: grid; gap: 6px; }
+    .toolbar-label { color: #5d6470; font-size: .75rem; font-weight: 700; line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+    .toolbar-controls { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+    .toolbar-segment { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid #d5dae1; border-radius: 12px; background: #eef1f4; }
+    .toolbar button { min-height: 44px; white-space: nowrap; border: 1px solid #c9ced6; background: #fff; color: #20242b; border-radius: 10px; padding: 0 14px; font-weight: 650; }
+    .toolbar-segment button { min-height: 38px; border-color: transparent; background: transparent; }
+    .toolbar button[aria-pressed="true"] { border-color: #111318; background: #fff; color: #111318; box-shadow: 0 1px 2px rgba(17,19,24,.08), inset 0 0 0 1px #111318; }
+    .toolbar button[role="switch"] { position: relative; padding-left: 38px; }
+    .toolbar button[role="switch"]::before { content: ""; position: absolute; left: 10px; width: 20px; height: 12px; border-radius: 999px; background: #c6ccd5; box-shadow: inset 0 0 0 1px rgba(17,19,24,.14); }
+    .toolbar button[role="switch"]::after { content: ""; position: absolute; left: 12px; width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.22); }
+    .toolbar button[role="switch"][aria-checked="true"]::before { background: #111318; }
+    .toolbar button[role="switch"][aria-checked="true"]::after { left: 20px; }
+    .toolbar-action--primary { border-color: #111318 !important; background: #111318 !important; color: #fff !important; }
+    .toolbar button:disabled { cursor: not-allowed; opacity: .48; }
+    .toolbar button:disabled[aria-pressed="true"] { opacity: .62; }
     .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; padding-bottom: 24px; }
     .device-panel { background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; padding: 16px; }
     .device-panel h2 { margin: 0 0 4px; font-size: 1.1rem; }
@@ -77,14 +89,35 @@
   <header class="site-header"><div class="shell"><h1>Design iPhone Duo</h1><p>Compare compact and expanded interface states in one browser-based workspace.</p></div></header>
   <main class="shell" id="main-content">
     <div class="toolbar" role="toolbar" aria-label="Preview controls">
-      <button type="button" id="view-both" aria-pressed="true" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Both</button>
-      <button type="button" id="view-outer" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Outer</button>
-      <button type="button" id="view-inner" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Inner</button>
-      <button type="button" id="fill-mode" aria-pressed="true" aria-controls="outer-stage inner-stage">Fill</button>
-      <button type="button" id="fit-mode" aria-pressed="false" aria-controls="outer-stage inner-stage">Fit</button>
-      <button type="button" id="crease-toggle" aria-pressed="false" aria-controls="inner-stage" disabled aria-disabled="true">Crease</button>
-      <button type="button" id="app-icons-toggle" aria-pressed="false" aria-controls="inner-stage" disabled aria-disabled="true">App icons</button>
-      <button type="button" id="clear-all" aria-controls="outer-stage inner-stage" disabled aria-disabled="true">Clear all</button>
+      <div class="toolbar-group" role="group" aria-label="Display mode">
+        <span class="toolbar-label" aria-hidden="true">View</span>
+        <div class="toolbar-controls toolbar-segment" data-control-set="display">
+          <button type="button" id="view-both" aria-pressed="true" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Both</button>
+          <button type="button" id="view-outer" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Outer</button>
+          <button type="button" id="view-inner" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Inner</button>
+        </div>
+      </div>
+      <div class="toolbar-group" role="group" aria-label="Image fit">
+        <span class="toolbar-label" aria-hidden="true">Image</span>
+        <div class="toolbar-controls toolbar-segment" data-control-set="fit">
+          <button type="button" id="fill-mode" aria-pressed="true" aria-controls="outer-stage inner-stage">Fill</button>
+          <button type="button" id="fit-mode" aria-pressed="false" aria-controls="outer-stage inner-stage">Fit</button>
+        </div>
+      </div>
+      <div class="toolbar-group" role="group" aria-label="Inner display overlays">
+        <span class="toolbar-label" aria-hidden="true">Overlays</span>
+        <div class="toolbar-controls" data-control-set="overlays">
+          <button type="button" id="crease-toggle" role="switch" aria-checked="false" aria-controls="inner-stage" disabled aria-disabled="true">Crease</button>
+          <button type="button" id="app-icons-toggle" role="switch" aria-checked="false" aria-controls="inner-stage" disabled aria-disabled="true">App icons</button>
+        </div>
+      </div>
+      <div class="toolbar-group" role="group" aria-label="Workspace actions">
+        <span class="toolbar-label" aria-hidden="true">Actions</span>
+        <div class="toolbar-controls" data-control-set="actions">
+          <button type="button" id="clear-all" class="toolbar-action" aria-controls="outer-stage inner-stage" disabled aria-disabled="true">Clear all</button>
+          <button type="button" id="export-button" class="toolbar-action toolbar-action--primary" aria-describedby="export-description" disabled aria-disabled="true">Export PNG</button>
+        </div>
+      </div>
     </div>
     <section class="workspace" aria-label="Device previews">
       <article class="device-panel" id="outer-panel" aria-labelledby="outer-title">
@@ -120,8 +153,7 @@
     </section>
     <section class="utility" aria-labelledby="export-title">
       <h2 id="export-title">Export</h2>
-      <p id="export-description">Export behavior will be implemented in the export tasks. This section establishes the semantic utility region and control grouping.</p>
-      <button type="button" disabled aria-disabled="true" aria-describedby="export-description">Export PNG</button>
+      <p id="export-description">Export behavior will be implemented in the export tasks. The primary export action is represented in the toolbar and stays disabled until its compositor is ready.</p>
       <p class="privacy-note">Privacy: screenshots are intended to be processed locally and must not be uploaded or persisted as image bytes.</p>
       <p id="app-status" role="status" aria-live="polite" aria-atomic="true"></p>
     </section>
