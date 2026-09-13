@@ -75,13 +75,23 @@
     @media (forced-colors: active) {
       button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px solid Highlight; box-shadow: none; }
     }
-    @media (max-width: 760px) {
-      .shell { width: min(100% - 24px, 720px); }
+    @media (max-width: 767px) {
+      .shell { width: calc(100% - 32px); }
+      .toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 12px 8px; overflow-x: visible; padding: 12px 0 18px; }
+      .toolbar-group { width: 100%; min-width: 0; }
+      .toolbar-controls { width: 100%; flex-wrap: wrap; }
+      .toolbar-segment { display: flex; width: 100%; }
+      .toolbar-segment button { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
+      .toolbar-controls[data-control-set="overlays"], .toolbar-controls[data-control-set="actions"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar-controls[data-control-set="overlays"] button, .toolbar-controls[data-control-set="actions"] button { width: 100%; min-width: 0; padding-inline: 8px; }
       .workspace { grid-template-columns: 1fr; gap: 16px; }
       .device-stage, .device-stage img { min-height: 300px; }
       .device-stage--outer, .device-stage--inner { min-height: 430px; }
       .outer-device-screen img, .inner-device-screen img { min-height: 0; }
       .inner-device-frame { width: min(100%, 500px); }
+    }
+    @media (max-width: 374px) {
+      .toolbar { grid-template-columns: 1fr; }
     }
   </style>
 </head>
