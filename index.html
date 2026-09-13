@@ -35,7 +35,7 @@
     .device-stage img { width: 100%; height: 100%; min-height: 360px; display: block; }
     .device-stage img[data-fit-mode="fill"] { object-fit: cover; }
     .device-stage img[data-fit-mode="fit"] { object-fit: contain; }
-    .device-stage--outer { min-height: 460px; overflow: visible; background: linear-gradient(180deg, #fbfcfd, #f2f4f7); }
+    .device-stage--outer, .device-stage--inner { min-height: 460px; overflow: visible; background: linear-gradient(180deg, #fbfcfd, #f2f4f7); }
     .outer-device-frame { width: min(100%, 250px); aspect-ratio: 9 / 19.5; position: relative; padding: 9px; border-radius: 42px; background: #17191d; box-shadow: 0 18px 45px rgba(17, 19, 24, .18), inset 0 0 0 1px rgba(255,255,255,.16); }
     .outer-device-screen { position: relative; width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 34px; background: #fafbfc; isolation: isolate; }
     .outer-device-screen.has-image { background: #111318; }
@@ -44,6 +44,14 @@
     .outer-device-screen img[data-fit-mode="fit"] { object-fit: contain; }
     .outer-device-safe-overlay { position: absolute; top: 14px; left: 50%; width: 72px; height: 20px; transform: translateX(-50%); border-radius: 999px; background: #111318; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); pointer-events: none; z-index: 3; }
     .outer-device-screen .upload-control { width: 100%; padding: 44px 18px 18px; }
+    .inner-device-frame { width: min(100%, 520px); aspect-ratio: 4 / 3; position: relative; padding: 9px; border-radius: 34px; background: #17191d; box-shadow: 0 18px 45px rgba(17, 19, 24, .18), inset 0 0 0 1px rgba(255,255,255,.16); }
+    .inner-device-screen { position: relative; width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 26px; background: #fafbfc; isolation: isolate; }
+    .inner-device-screen.has-image { background: #111318; }
+    .inner-device-screen img { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; display: block; }
+    .inner-device-screen img[data-fit-mode="fill"] { object-fit: cover; }
+    .inner-device-screen img[data-fit-mode="fit"] { object-fit: contain; }
+    .inner-device-hinge-safe-layer { position: absolute; top: 9px; bottom: 9px; left: 50%; width: 16px; transform: translateX(-50%); background: linear-gradient(90deg, rgba(17,19,24,.04), rgba(255,255,255,.16) 48%, rgba(17,19,24,.10)); box-shadow: inset 1px 0 rgba(255,255,255,.12), inset -1px 0 rgba(17,19,24,.12); pointer-events: none; z-index: 3; }
+    .inner-device-screen .upload-control { width: 100%; padding: 18px 28px; }
     .upload-control { display: grid; gap: 8px; justify-items: center; }
     .upload-control input { max-width: 100%; }
     .utility { margin: 0 0 32px; padding: 16px; background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; }
@@ -59,8 +67,9 @@
       .shell { width: min(100% - 24px, 720px); }
       .workspace { grid-template-columns: 1fr; gap: 16px; }
       .device-stage, .device-stage img { min-height: 300px; }
-      .device-stage--outer { min-height: 430px; }
-      .outer-device-screen img { min-height: 0; }
+      .device-stage--outer, .device-stage--inner { min-height: 430px; }
+      .outer-device-screen img, .inner-device-screen img { min-height: 0; }
+      .inner-device-frame { width: min(100%, 500px); }
     }
   </style>
 </head>
@@ -95,12 +104,17 @@
       </article>
       <article class="device-panel" id="inner-panel" aria-labelledby="inner-title">
         <h2 id="inner-title">Inner display</h2><p>Expanded state for additional hierarchy, context, and detail.</p>
-        <div class="device-stage" id="inner-stage" aria-label="Inner screenshot preview">
-          <label class="upload-control" for="inner-upload" id="inner-upload-control">
-            <strong>Choose an Inner screenshot</strong>
-            <span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>
-            <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" aria-describedby="inner-upload-hint">
-          </label>
+        <div class="device-stage device-stage--inner" id="inner-stage" aria-label="Inner screenshot preview">
+          <div class="inner-device-frame" data-device-frame="inner">
+            <div class="inner-device-screen" id="inner-screen">
+              <label class="upload-control" for="inner-upload" id="inner-upload-control">
+                <strong>Choose an Inner screenshot</strong>
+                <span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>
+                <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" aria-describedby="inner-upload-hint">
+              </label>
+            </div>
+            <span class="inner-device-hinge-safe-layer" data-overlay="hinge-safe" aria-hidden="true"></span>
+          </div>
         </div>
       </article>
     </section>
@@ -120,6 +134,7 @@
       const outerScreen = document.getElementById('outer-screen');
       const innerInput = document.getElementById('inner-upload');
       const innerStage = document.getElementById('inner-stage');
+      const innerScreen = document.getElementById('inner-screen');
       const fillModeButton = document.getElementById('fill-mode');
       const fitModeButton = document.getElementById('fit-mode');
       const status = document.getElementById('app-status');
@@ -130,15 +145,15 @@
       let previewFitMode = 'fill';
       function validateImageFile(file, displayName, input) { if (allowedImageTypes.has(file.type)) return true; input.value = ''; status.textContent = `${displayName} screenshot rejected. Choose a ${supportedTypeLabel} image.`; return false; }
       function applyPreviewFitMode(image) { if (image) image.dataset.fitMode = previewFitMode; }
-      function applyCurrentFitModeToPreviews() { applyPreviewFitMode(outerScreen.querySelector('img')); applyPreviewFitMode(innerStage.querySelector('img')); }
+      function applyCurrentFitModeToPreviews() { applyPreviewFitMode(outerScreen.querySelector('img')); applyPreviewFitMode(innerScreen.querySelector('img')); }
       function setFillMode() { previewFitMode = 'fill'; fillModeButton.setAttribute('aria-pressed', 'true'); fitModeButton.setAttribute('aria-pressed', 'false'); applyCurrentFitModeToPreviews(); status.textContent = 'Fill mode active. Screenshots cover each preview without changing their aspect ratio.'; }
       function setFitMode() { previewFitMode = 'fit'; fillModeButton.setAttribute('aria-pressed', 'false'); fitModeButton.setAttribute('aria-pressed', 'true'); applyCurrentFitModeToPreviews(); status.textContent = 'Fit mode active. Full screenshots stay visible without changing their aspect ratio.'; }
       function revokeOuterObjectUrl() { if (outerObjectUrl) { URL.revokeObjectURL(outerObjectUrl); outerObjectUrl = null; } }
       function revokeInnerObjectUrl() { if (innerObjectUrl) { URL.revokeObjectURL(innerObjectUrl); innerObjectUrl = null; } }
       function restoreOuterUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'outer-upload-control'; label.htmlFor = 'outer-upload'; label.innerHTML = '<strong>Choose an Outer screenshot</strong><span id="outer-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; outerInput.setAttribute('aria-describedby', 'outer-upload-hint'); label.appendChild(outerInput); outerScreen.replaceChildren(label); outerScreen.classList.remove('has-image'); }
-      function restoreInnerUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'inner-upload-control'; label.htmlFor = 'inner-upload'; label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; innerInput.setAttribute('aria-describedby', 'inner-upload-hint'); label.appendChild(innerInput); innerStage.replaceChildren(label); innerStage.classList.remove('has-image'); }
+      function restoreInnerUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'inner-upload-control'; label.htmlFor = 'inner-upload'; label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; innerInput.setAttribute('aria-describedby', 'inner-upload-hint'); label.appendChild(innerInput); innerScreen.replaceChildren(label); innerScreen.classList.remove('has-image'); }
       function renderOuterFile(file) { revokeOuterObjectUrl(); outerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Outer display screenshot preview'; image.src = outerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { outerScreen.replaceChildren(image); outerScreen.classList.add('has-image'); status.textContent = `Outer screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeOuterObjectUrl(); outerInput.value = ''; restoreOuterUploadControl(); status.textContent = 'The Outer screenshot could not be decoded. Choose another image.'; }, { once: true }); }
-      function renderInnerFile(file) { revokeInnerObjectUrl(); innerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Inner display screenshot preview'; image.src = innerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { innerStage.replaceChildren(image); innerStage.classList.add('has-image'); status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeInnerObjectUrl(); innerInput.value = ''; restoreInnerUploadControl(); status.textContent = 'The Inner screenshot could not be decoded. Choose another image.'; }, { once: true }); }
+      function renderInnerFile(file) { revokeInnerObjectUrl(); innerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Inner display screenshot preview'; image.src = innerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { innerScreen.replaceChildren(image); innerScreen.classList.add('has-image'); status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeInnerObjectUrl(); innerInput.value = ''; restoreInnerUploadControl(); status.textContent = 'The Inner screenshot could not be decoded. Choose another image.'; }, { once: true }); }
       fillModeButton.addEventListener('click', setFillMode); fitModeButton.addEventListener('click', setFitMode);
       outerInput.addEventListener('change', () => { const [file] = outerInput.files || []; if (!file || !validateImageFile(file, 'Outer', outerInput)) return; renderOuterFile(file); });
       innerInput.addEventListener('change', () => { const [file] = innerInput.files || []; if (!file || !validateImageFile(file, 'Inner', innerInput)) return; renderInnerFile(file); });
