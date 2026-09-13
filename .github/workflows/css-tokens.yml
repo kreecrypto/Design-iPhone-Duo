@@ -1,0 +1,30 @@
+name: CSS token contract
+
+on:
+  push:
+    paths:
+      - 'src/styles.css'
+      - 'tests/css-tokens.test.mjs'
+      - '.github/workflows/css-tokens.yml'
+  pull_request:
+    paths:
+      - 'src/styles.css'
+      - 'tests/css-tokens.test.mjs'
+      - '.github/workflows/css-tokens.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  css-tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify shared CSS token contract
+        run: node tests/css-tokens.test.mjs
