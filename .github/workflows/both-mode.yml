@@ -1,0 +1,35 @@
+name: Both mode browser QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - tests/both-mode.browser.test.mjs
+      - .github/workflows/both-mode.yml
+  pull_request:
+    paths:
+      - index.html
+      - tests/both-mode.browser.test.mjs
+      - .github/workflows/both-mode.yml
+
+permissions:
+  contents: read
+
+jobs:
+  both-mode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify Both previews preserve loaded state
+        run: node tests/both-mode.browser.test.mjs
