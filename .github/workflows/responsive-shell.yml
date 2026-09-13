@@ -6,11 +6,13 @@ on:
     paths:
       - index.html
       - tests/responsive-shell.browser.test.mjs
+      - tests/mobile-320.browser.test.mjs
       - .github/workflows/responsive-shell.yml
   pull_request:
     paths:
       - index.html
       - tests/responsive-shell.browser.test.mjs
+      - tests/mobile-320.browser.test.mjs
       - .github/workflows/responsive-shell.yml
 
 permissions:
@@ -33,3 +35,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify 320/375/768/1024/1440 responsive shell
         run: node tests/responsive-shell.browser.test.mjs
+      - name: Verify 320px controls and local upload usability
+        run: node tests/mobile-320.browser.test.mjs
