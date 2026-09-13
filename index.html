@@ -97,8 +97,8 @@
         <div class="device-stage" id="outer-stage" aria-label="Outer screenshot preview">
           <label class="upload-control" for="outer-upload" id="outer-upload-control">
             <strong>Choose an Outer screenshot</strong>
-            <span id="outer-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>
-            <input id="outer-upload" name="outer-upload" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="outer-upload-hint">
+            <span id="outer-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>
+            <input id="outer-upload" name="outer-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" aria-describedby="outer-upload-hint">
           </label>
         </div>
       </article>
@@ -109,8 +109,8 @@
         <div class="device-stage" id="inner-stage" aria-label="Inner screenshot preview">
           <label class="upload-control" for="inner-upload" id="inner-upload-control">
             <strong>Choose an Inner screenshot</strong>
-            <span id="inner-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>
-            <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="inner-upload-hint">
+            <span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>
+            <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" aria-describedby="inner-upload-hint">
           </label>
         </div>
       </article>
@@ -138,8 +138,8 @@
       const fillModeButton = document.getElementById('fill-mode');
       const fitModeButton = document.getElementById('fit-mode');
       const status = document.getElementById('app-status');
-      const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
-      const supportedTypeLabel = 'PNG, JPEG, or WebP';
+      const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']);
+      const supportedTypeLabel = 'PNG, JPEG, WebP, GIF, or SVG';
       let outerObjectUrl = null;
       let innerObjectUrl = null;
       let previewFitMode = 'fill';
@@ -196,7 +196,7 @@
         label.className = 'upload-control';
         label.id = 'outer-upload-control';
         label.htmlFor = 'outer-upload';
-        label.innerHTML = '<strong>Choose an Outer screenshot</strong><span id="outer-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.innerHTML = '<strong>Choose an Outer screenshot</strong><span id="outer-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>';
         outerInput.setAttribute('aria-describedby', 'outer-upload-hint');
         label.appendChild(outerInput);
         outerStage.replaceChildren(label);
@@ -208,7 +208,7 @@
         label.className = 'upload-control';
         label.id = 'inner-upload-control';
         label.htmlFor = 'inner-upload';
-        label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>';
         innerInput.setAttribute('aria-describedby', 'inner-upload-hint');
         label.appendChild(innerInput);
         innerStage.replaceChildren(label);
