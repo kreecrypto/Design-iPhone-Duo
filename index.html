@@ -56,38 +56,38 @@
   </header>
 
   <main class="shell" id="main-content">
-    <nav class="toolbar" aria-label="Preview controls">
-      <button type="button" aria-pressed="true">Both</button>
-      <button type="button" aria-pressed="false">Outer</button>
-      <button type="button" aria-pressed="false">Inner</button>
-      <button type="button" id="fill-mode" aria-pressed="true">Fill</button>
-      <button type="button" id="fit-mode" aria-pressed="false">Fit</button>
-      <button type="button" aria-pressed="false">Crease</button>
-      <button type="button" aria-pressed="false">App icons</button>
-      <button type="button">Clear all</button>
-    </nav>
+    <div class="toolbar" role="toolbar" aria-label="Preview controls">
+      <button type="button" id="view-both" aria-pressed="true" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Both</button>
+      <button type="button" id="view-outer" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Outer</button>
+      <button type="button" id="view-inner" aria-pressed="false" aria-controls="outer-panel inner-panel" disabled aria-disabled="true">Inner</button>
+      <button type="button" id="fill-mode" aria-pressed="true" aria-controls="outer-stage inner-stage">Fill</button>
+      <button type="button" id="fit-mode" aria-pressed="false" aria-controls="outer-stage inner-stage">Fit</button>
+      <button type="button" id="crease-toggle" aria-pressed="false" aria-controls="inner-stage" disabled aria-disabled="true">Crease</button>
+      <button type="button" id="app-icons-toggle" aria-pressed="false" aria-controls="inner-stage" disabled aria-disabled="true">App icons</button>
+      <button type="button" id="clear-all" aria-controls="outer-stage inner-stage" disabled aria-disabled="true">Clear all</button>
+    </div>
 
     <section class="workspace" aria-label="Device previews">
-      <article class="device-panel" aria-labelledby="outer-title">
+      <article class="device-panel" id="outer-panel" aria-labelledby="outer-title">
         <h2 id="outer-title">Outer display</h2>
         <p>Compact state for prioritized content and essential actions.</p>
-        <div class="device-stage" id="outer-stage">
+        <div class="device-stage" id="outer-stage" aria-label="Outer screenshot preview">
           <label class="upload-control" for="outer-upload" id="outer-upload-control">
             <strong>Choose an Outer screenshot</strong>
-            <span>PNG, JPEG, or WebP. Processing stays in this browser.</span>
-            <input id="outer-upload" name="outer-upload" type="file" accept="image/png,image/jpeg,image/webp">
+            <span id="outer-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>
+            <input id="outer-upload" name="outer-upload" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="outer-upload-hint">
           </label>
         </div>
       </article>
 
-      <article class="device-panel" aria-labelledby="inner-title">
+      <article class="device-panel" id="inner-panel" aria-labelledby="inner-title">
         <h2 id="inner-title">Inner display</h2>
         <p>Expanded state for additional hierarchy, context, and detail.</p>
-        <div class="device-stage" id="inner-stage">
+        <div class="device-stage" id="inner-stage" aria-label="Inner screenshot preview">
           <label class="upload-control" for="inner-upload" id="inner-upload-control">
             <strong>Choose an Inner screenshot</strong>
-            <span>PNG, JPEG, or WebP. Processing stays in this browser.</span>
-            <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp">
+            <span id="inner-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>
+            <input id="inner-upload" name="inner-upload" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="inner-upload-hint">
           </label>
         </div>
       </article>
@@ -95,10 +95,10 @@
 
     <section class="utility" aria-labelledby="export-title">
       <h2 id="export-title">Export</h2>
-      <p>Export behavior will be implemented in the export tasks. This section establishes the semantic utility region and control grouping.</p>
-      <button type="button" disabled aria-disabled="true">Export PNG</button>
+      <p id="export-description">Export behavior will be implemented in the export tasks. This section establishes the semantic utility region and control grouping.</p>
+      <button type="button" disabled aria-disabled="true" aria-describedby="export-description">Export PNG</button>
       <p class="privacy-note">Privacy: screenshots are intended to be processed locally and must not be uploaded or persisted as image bytes.</p>
-      <p id="app-status" role="status" aria-live="polite"></p>
+      <p id="app-status" role="status" aria-live="polite" aria-atomic="true"></p>
     </section>
   </main>
 
@@ -173,7 +173,8 @@
         label.className = 'upload-control';
         label.id = 'outer-upload-control';
         label.htmlFor = 'outer-upload';
-        label.innerHTML = '<strong>Choose an Outer screenshot</strong><span>PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.innerHTML = '<strong>Choose an Outer screenshot</strong><span id="outer-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        outerInput.setAttribute('aria-describedby', 'outer-upload-hint');
         label.appendChild(outerInput);
         outerStage.replaceChildren(label);
         outerStage.classList.remove('has-image');
@@ -184,7 +185,8 @@
         label.className = 'upload-control';
         label.id = 'inner-upload-control';
         label.htmlFor = 'inner-upload';
-        label.innerHTML = '<strong>Choose an Inner screenshot</strong><span>PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, or WebP. Processing stays in this browser.</span>';
+        innerInput.setAttribute('aria-describedby', 'inner-upload-hint');
         label.appendChild(innerInput);
         innerStage.replaceChildren(label);
         innerStage.classList.remove('has-image');
