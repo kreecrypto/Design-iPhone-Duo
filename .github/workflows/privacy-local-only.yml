@@ -1,4 +1,4 @@
-name: Privacy, upload, acceptance, frame, and toolbar guards
+name: Privacy, upload, acceptance, frame, toolbar, and mobile guards
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
       - tests/outer-frame.test.mjs
       - tests/inner-frame.test.mjs
       - tests/toolbar-controls.test.mjs
+      - tests/mobile-toolbar.test.mjs
       - .github/workflows/privacy-local-only.yml
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - tests/outer-frame.test.mjs
       - tests/inner-frame.test.mjs
       - tests/toolbar-controls.test.mjs
+      - tests/mobile-toolbar.test.mjs
       - .github/workflows/privacy-local-only.yml
 
 permissions:
@@ -51,3 +53,5 @@ jobs:
         run: node tests/inner-frame.test.mjs
       - name: Verify toolbar control structure and states
         run: node tests/toolbar-controls.test.mjs
+      - name: Verify mobile toolbar wraps at 320px
+        run: node tests/mobile-toolbar.test.mjs
