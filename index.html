@@ -109,8 +109,17 @@
       const innerInput = document.getElementById('inner-upload');
       const innerStage = document.getElementById('inner-stage');
       const status = document.getElementById('app-status');
+      const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
+      const supportedTypeLabel = 'PNG, JPEG, or WebP';
       let outerObjectUrl = null;
       let innerObjectUrl = null;
+
+      function validateImageFile(file, displayName, input) {
+        if (allowedImageTypes.has(file.type)) return true;
+        input.value = '';
+        status.textContent = `${displayName} screenshot rejected. Choose a ${supportedTypeLabel} image.`;
+        return false;
+      }
 
       function revokeOuterObjectUrl() {
         if (outerObjectUrl) {
@@ -190,13 +199,13 @@
 
       outerInput.addEventListener('change', () => {
         const [file] = outerInput.files || [];
-        if (!file) return;
+        if (!file || !validateImageFile(file, 'Outer', outerInput)) return;
         renderOuterFile(file);
       });
 
       innerInput.addEventListener('change', () => {
         const [file] = innerInput.files || [];
-        if (!file) return;
+        if (!file || !validateImageFile(file, 'Inner', innerInput)) return;
         renderInnerFile(file);
       });
 
