@@ -22,13 +22,16 @@
     .site-header p { margin: 8px 0 0; color: #5d6470; }
     .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 16px; }
     .toolbar button { white-space: nowrap; border: 1px solid #c9ced6; background: #fff; border-radius: 10px; padding: 0 14px; }
+    .toolbar button[aria-pressed="true"] { border-color: #111318; box-shadow: inset 0 0 0 1px #111318; }
+    .toolbar button:disabled { cursor: not-allowed; opacity: .5; }
     .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; padding-bottom: 24px; }
     .device-panel { background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; padding: 16px; }
     .device-panel h2 { margin: 0 0 4px; font-size: 1.1rem; }
     .device-panel p { margin: 0 0 16px; color: #666d78; }
     .device-stage { min-height: 360px; display: grid; place-items: center; border: 1px dashed #b9c0c9; border-radius: 14px; background: #fafbfc; padding: 16px; text-align: center; overflow: hidden; }
     .device-stage.has-image { padding: 0; border-style: solid; background: #111318; }
-    .device-stage img { width: 100%; height: 100%; min-height: 360px; object-fit: cover; display: block; }
+    .device-stage img { width: 100%; height: 100%; min-height: 360px; display: block; }
+    .device-stage img[data-fit-mode="fill"] { object-fit: cover; }
     .upload-control { display: grid; gap: 8px; justify-items: center; }
     .upload-control input { max-width: 100%; }
     .utility { margin: 0 0 32px; padding: 16px; background: #fff; border: 1px solid #dfe3e8; border-radius: 18px; }
@@ -56,8 +59,8 @@
       <button type="button" aria-pressed="true">Both</button>
       <button type="button" aria-pressed="false">Outer</button>
       <button type="button" aria-pressed="false">Inner</button>
-      <button type="button" aria-pressed="true">Fill</button>
-      <button type="button" aria-pressed="false">Fit</button>
+      <button type="button" id="fill-mode" aria-pressed="true">Fill</button>
+      <button type="button" id="fit-mode" aria-pressed="false" disabled aria-disabled="true">Fit</button>
       <button type="button" aria-pressed="false">Crease</button>
       <button type="button" aria-pressed="false">App icons</button>
       <button type="button">Clear all</button>
@@ -108,17 +111,32 @@
       const outerStage = document.getElementById('outer-stage');
       const innerInput = document.getElementById('inner-upload');
       const innerStage = document.getElementById('inner-stage');
+      const fillModeButton = document.getElementById('fill-mode');
       const status = document.getElementById('app-status');
       const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
       const supportedTypeLabel = 'PNG, JPEG, or WebP';
       let outerObjectUrl = null;
       let innerObjectUrl = null;
+      let previewFitMode = 'fill';
 
       function validateImageFile(file, displayName, input) {
         if (allowedImageTypes.has(file.type)) return true;
         input.value = '';
         status.textContent = `${displayName} screenshot rejected. Choose a ${supportedTypeLabel} image.`;
         return false;
+      }
+
+      function applyPreviewFitMode(image) {
+        if (!image) return;
+        image.dataset.fitMode = previewFitMode;
+      }
+
+      function setFillMode() {
+        previewFitMode = 'fill';
+        fillModeButton.setAttribute('aria-pressed', 'true');
+        applyPreviewFitMode(outerStage.querySelector('img'));
+        applyPreviewFitMode(innerStage.querySelector('img'));
+        status.textContent = 'Fill mode active. Screenshots cover each preview without changing their aspect ratio.';
       }
 
       function revokeOuterObjectUrl() {
@@ -164,10 +182,11 @@
         const image = new Image();
         image.alt = 'Uploaded Outer display screenshot preview';
         image.src = outerObjectUrl;
+        applyPreviewFitMode(image);
         image.addEventListener('load', () => {
           outerStage.replaceChildren(image);
           outerStage.classList.add('has-image');
-          status.textContent = 'Outer screenshot loaded locally.';
+          status.textContent = `Outer screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`;
         }, { once: true });
         image.addEventListener('error', () => {
           revokeOuterObjectUrl();
@@ -184,10 +203,11 @@
         const image = new Image();
         image.alt = 'Uploaded Inner display screenshot preview';
         image.src = innerObjectUrl;
+        applyPreviewFitMode(image);
         image.addEventListener('load', () => {
           innerStage.replaceChildren(image);
           innerStage.classList.add('has-image');
-          status.textContent = 'Inner screenshot loaded locally.';
+          status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`;
         }, { once: true });
         image.addEventListener('error', () => {
           revokeInnerObjectUrl();
@@ -196,6 +216,8 @@
           status.textContent = 'The Inner screenshot could not be decoded. Choose another image.';
         }, { once: true });
       }
+
+      fillModeButton.addEventListener('click', setFillMode);
 
       outerInput.addEventListener('change', () => {
         const [file] = outerInput.files || [];
