@@ -155,5 +155,9 @@
     };
   }
 
-  window.DuoExportCompositor = Object.freeze({ render });
+  function renderBoth(options = {}) {
+    return render({ ...options, scope: 'both' });
+  }
+
+  window.DuoExportCompositor = Object.freeze({ render, renderBoth });
 })();
