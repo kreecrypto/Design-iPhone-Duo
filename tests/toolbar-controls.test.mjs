@@ -10,7 +10,8 @@ mustMatch(/class="toolbar-group" role="group" aria-label="Display mode"[\s\S]*?d
 mustMatch(/class="toolbar-group" role="group" aria-label="Image fit"[\s\S]*?data-control-set="fit"[\s\S]*?id="fill-mode"[^>]*aria-pressed="true"[^>]*>Fill<\/button>[\s\S]*?id="fit-mode"[^>]*aria-pressed="false"[^>]*>Fit<\/button>/, 'Fill/Fit must be a labelled single-selection control set with visible selected state.');
 mustMatch(/class="toolbar-group" role="group" aria-label="Inner display overlays"[\s\S]*?id="crease-toggle"[^>]*role="switch"[^>]*aria-checked="false"(?![^>]*disabled)[^>]*>Crease<\/button>[\s\S]*?id="app-icons-toggle"[^>]*role="switch"[^>]*aria-checked="false"(?![^>]*disabled)[^>]*>App icons<\/button>/, 'Crease and App icons must both be enabled off-state switches after T024/T025 preview implementation.');
 mustMatch(/id="clear-all" class="toolbar-action"[^>]*disabled[^>]*>Clear all<\/button>/, 'Clear all state must be represented and disabled until implemented.');
-mustMatch(/id="export-button" class="toolbar-action toolbar-action--primary"[^>]*aria-describedby="export-description"[^>]*disabled[^>]*>Export PNG<\/button>/, 'Export must be represented as the toolbar primary CTA and remain disabled until implemented.');
+mustMatch(/id="export-button" class="toolbar-action toolbar-action--primary"[^>]*aria-describedby="export-description"(?![^>]*disabled)[^>]*>Export PNG<\/button>/, 'Export must be the enabled primary toolbar CTA after T039 implementation.');
+mustMatch(/<script src="src\/export-compositor\.js"><\/script>/, 'The working prototype must load the browser-local export compositor before wiring the export CTA.');
 mustMatch(/button \{ min-height: 44px; \}/, 'Toolbar controls must retain a minimum 44px touch target.');
 mustMatch(/\.toolbar button\[aria-pressed="true"\]/, 'Selected segmented controls need an explicit visual state.');
 mustMatch(/\.toolbar button:disabled/, 'Disabled controls need an explicit visual state.');
@@ -18,4 +19,4 @@ mustMatch(/\.toolbar button:disabled/, 'Disabled controls need an explicit visua
 const exportButtonCount = (html.match(/id="export-button"/g) || []).length;
 assert.equal(exportButtonCount, 1, 'Export toolbar control must have a single stable ID.');
 
-console.log('Toolbar control structure and states verified.');
+console.log('Toolbar control structure and states verified, including enabled local PNG export.');
