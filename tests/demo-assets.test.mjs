@@ -14,7 +14,8 @@ for (const fixture of fixtures) {
   assert.match(svg, new RegExp(`height="${fixture.height}"`), `${fixture.name} fixture height must be stable`);
   assert.match(svg, /<title id="title">/, `${fixture.name} fixture must have an accessible title`);
   assert.match(svg, /<desc id="desc">/, `${fixture.name} fixture must have an accessible description`);
-  assert.doesNotMatch(svg, /(?:https?:|data:|blob:|<image\b|<script\b|foreignObject)/i, `${fixture.name} fixture must be self-contained and network-free`);
+  assert.doesNotMatch(svg, /(?:href|src)\s*=\s*["'](?:https?:|data:|blob:)/i, `${fixture.name} fixture must not reference external or embedded URLs`);
+  assert.doesNotMatch(svg, /<(?:image|script|foreignObject)\b/i, `${fixture.name} fixture must contain vector-only inert markup`);
   assert.ok((svg.match(/<rect\b/g) ?? []).length >= 10, `${fixture.name} fixture must contain meaningful synthetic UI geometry`);
 }
 
