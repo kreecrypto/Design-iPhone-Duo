@@ -3,6 +3,7 @@
   const INNER = { width: 800, height: 600, radius: 34, inset: 14 };
   const PAD = 64;
   const GAP = 64;
+  const PREFERENCE_KEY = 'design-iphone-duo.preferences.v1';
 
   function roundedRect(ctx, x, y, width, height, radius) {
     const r = Math.min(radius, width / 2, height / 2);
@@ -184,7 +185,6 @@
   function ensureExportDialog(documentRef = document) {
     let dialog = documentRef.querySelector('#export-dialog');
     if (dialog) return dialog;
-
     dialog = documentRef.createElement('dialog');
     dialog.id = 'export-dialog';
     dialog.setAttribute('aria-labelledby', 'export-dialog-title');
@@ -200,10 +200,7 @@
       if (event.key !== 'Tab') return;
       const focusable = [...dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
         .filter((element) => !element.hidden && element.getClientRects().length > 0);
-      if (!focusable.length) {
-        event.preventDefault();
-        return;
-      }
+      if (!focusable.length) { event.preventDefault(); return; }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (focusable.length === 1 || (!event.shiftKey && documentRef.activeElement === last) || (event.shiftKey && documentRef.activeElement === first)) {
@@ -257,23 +254,15 @@
     const outerPanel = documentRef.querySelector('#outer-panel');
     const innerPanel = documentRef.querySelector('#inner-panel');
     const status = documentRef.querySelector('#app-status');
-    const buttons = {
-      both: documentRef.querySelector('#view-both'),
-      outer: documentRef.querySelector('#view-outer'),
-      inner: documentRef.querySelector('#view-inner')
-    };
+    const buttons = { both: documentRef.querySelector('#view-both'), outer: documentRef.querySelector('#view-outer'), inner: documentRef.querySelector('#view-inner') };
     if (!workspace || !outerPanel || !innerPanel || Object.values(buttons).some((button) => !button)) return;
-
     const setMode = (mode) => {
       workspace.dataset.viewMode = mode;
       outerPanel.hidden = mode === 'inner';
       innerPanel.hidden = mode === 'outer';
       for (const [name, button] of Object.entries(buttons)) button.setAttribute('aria-pressed', String(name === mode));
-      if (status) status.textContent = mode === 'both'
-        ? 'Both view active. Outer and Inner previews remain visible with their current image state.'
-        : `${mode === 'outer' ? 'Outer' : 'Inner'} view active. Hidden preview state remains loaded locally.`;
+      if (status) status.textContent = mode === 'both' ? 'Both view active. Outer and Inner previews remain visible with their current image state.' : `${mode === 'outer' ? 'Outer' : 'Inner'} view active. Hidden preview state remains loaded locally.`;
     };
-
     for (const [mode, button] of Object.entries(buttons)) {
       button.disabled = false;
       button.removeAttribute('aria-disabled');
@@ -283,19 +272,77 @@
     }
   }
 
+  function readPreferences(storage) {
+    try {
+      const raw = storage.getItem(PREFERENCE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.version !== 1) return null;
+      return {
+        version: 1,
+        viewMode: ['both', 'outer', 'inner'].includes(parsed.viewMode) ? parsed.viewMode : 'both',
+        fitMode: ['fill', 'fit'].includes(parsed.fitMode) ? parsed.fitMode : 'fill',
+        crease: parsed.crease === true,
+        appIcons: parsed.appIcons === true
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function collectPreferences(documentRef = document) {
+    const workspace = documentRef.querySelector('#preview-workspace');
+    return {
+      version: 1,
+      viewMode: ['both', 'outer', 'inner'].includes(workspace?.dataset.viewMode) ? workspace.dataset.viewMode : 'both',
+      fitMode: documentRef.querySelector('#fit-mode')?.getAttribute('aria-pressed') === 'true' ? 'fit' : 'fill',
+      crease: documentRef.querySelector('#crease-toggle')?.getAttribute('aria-checked') === 'true',
+      appIcons: documentRef.querySelector('#app-icons-toggle')?.getAttribute('aria-checked') === 'true'
+    };
+  }
+
+  function writePreferences(documentRef = document, storage = window.localStorage) {
+    try {
+      storage.setItem(PREFERENCE_KEY, JSON.stringify(collectPreferences(documentRef)));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function restorePreferences(documentRef = document, storage = window.localStorage) {
+    const prefs = readPreferences(storage);
+    if (!prefs) return false;
+    documentRef.querySelector(`#view-${prefs.viewMode}`)?.click();
+    documentRef.querySelector(prefs.fitMode === 'fit' ? '#fit-mode' : '#fill-mode')?.click();
+    const crease = documentRef.querySelector('#crease-toggle');
+    if (crease && (crease.getAttribute('aria-checked') === 'true') !== prefs.crease) crease.click();
+    const appIcons = documentRef.querySelector('#app-icons-toggle');
+    if (appIcons && (appIcons.getAttribute('aria-checked') === 'true') !== prefs.appIcons) appIcons.click();
+    return true;
+  }
+
+  function installPreferencePersistence(documentRef = document) {
+    if (!window.localStorage || documentRef.documentElement.dataset.preferencePersistenceInstalled === 'true') return;
+    documentRef.documentElement.dataset.preferencePersistenceInstalled = 'true';
+    restorePreferences(documentRef, window.localStorage);
+    const preferenceControls = new Set(['view-both', 'view-outer', 'view-inner', 'fill-mode', 'fit-mode', 'crease-toggle', 'app-icons-toggle']);
+    documentRef.addEventListener('click', (event) => {
+      if (preferenceControls.has(event.target?.id)) queueMicrotask(() => writePreferences(documentRef, window.localStorage));
+    });
+  }
+
   function installWhenReady() {
     const install = () => {
       installSaveFallbackObserver(document);
       installExportDialog(document);
       installViewModes(document);
+      installPreferencePersistence(document);
     };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', install, { once: true });
-    } else {
-      install();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+    else install();
   }
 
   installWhenReady();
-  window.DuoExportCompositor = Object.freeze({ render, renderBoth, showSaveFallback });
+  window.DuoExportCompositor = Object.freeze({ render, renderBoth, showSaveFallback, collectPreferences });
 })();
