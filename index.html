@@ -64,6 +64,12 @@
     .inner-device-screen img[data-fit-mode="fit"] { object-fit: contain; }
     .inner-device-hinge-safe-layer { position: absolute; top: 9px; bottom: 9px; left: 50%; width: 16px; transform: translateX(-50%); background: linear-gradient(90deg, rgba(17,19,24,.04), rgba(255,255,255,.16) 48%, rgba(17,19,24,.10)); box-shadow: inset 1px 0 rgba(255,255,255,.12), inset -1px 0 rgba(17,19,24,.12); pointer-events: none; z-index: 3; }
     .inner-device-crease-overlay { position: absolute; top: 9px; bottom: 9px; left: 50%; width: 28px; transform: translateX(-50%); background: linear-gradient(90deg, rgba(17,19,24,.08), rgba(255,255,255,.22) 45%, rgba(17,19,24,.16) 55%, rgba(255,255,255,.08)); mix-blend-mode: soft-light; opacity: .78; pointer-events: none; z-index: 4; }
+    .inner-device-app-icons { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 28px); gap: 10px; padding: 9px 12px; border-radius: 18px; background: rgba(255,255,255,.72); box-shadow: 0 6px 20px rgba(17,19,24,.18), inset 0 0 0 1px rgba(17,19,24,.08); backdrop-filter: blur(10px); pointer-events: none; z-index: 5; }
+    .inner-device-app-icons .app-icon { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(145deg, #ffffff, #cdd5df); box-shadow: inset 0 0 0 1px rgba(17,19,24,.12), 0 1px 2px rgba(17,19,24,.12); }
+    .inner-device-app-icons .app-icon:nth-child(2) { border-radius: 50%; }
+    .inner-device-app-icons .app-icon:nth-child(3) { background: linear-gradient(145deg, #2d3138, #737b87); }
+    .inner-device-app-icons .app-icon:nth-child(4) { background: linear-gradient(145deg, #f7f8fa, #9aa7b8); }
+    .inner-device-app-icons .app-icon:nth-child(5) { background: linear-gradient(145deg, #dde3ea, #6f7b8b); }
     .inner-device-screen .upload-control { width: 100%; padding: 18px 28px; }
     .upload-control { display: grid; gap: 8px; justify-items: center; min-width: 0; }
     .upload-control input { max-width: 100%; }
@@ -137,7 +143,7 @@
         <span class="toolbar-label" aria-hidden="true">Overlays</span>
         <div class="toolbar-controls" data-control-set="overlays">
           <button type="button" id="crease-toggle" role="switch" aria-checked="false" aria-controls="inner-crease-overlay">Crease</button>
-          <button type="button" id="app-icons-toggle" role="switch" aria-checked="false" aria-controls="inner-stage" disabled aria-disabled="true">App icons</button>
+          <button type="button" id="app-icons-toggle" role="switch" aria-checked="false" aria-controls="inner-app-icons-overlay">App icons</button>
         </div>
       </div>
       <div class="toolbar-group" role="group" aria-label="Workspace actions">
@@ -148,7 +154,7 @@
         </div>
       </div>
     </div>
-    <section class="workspace" id="preview-workspace" data-view-mode="both" data-crease="off" aria-label="Device previews">
+    <section class="workspace" id="preview-workspace" data-view-mode="both" data-crease="off" data-app-icons="off" aria-label="Device previews">
       <article class="device-panel" id="outer-panel" aria-labelledby="outer-title">
         <h2 id="outer-title">Outer display</h2><p>Compact state for prioritized content and essential actions.</p>
         <div class="device-stage device-stage--outer" id="outer-stage" aria-label="Outer screenshot preview">
@@ -167,7 +173,7 @@
       <article class="device-panel" id="inner-panel" aria-labelledby="inner-title">
         <h2 id="inner-title">Inner display</h2><p>Expanded state for additional hierarchy, context, and detail.</p>
         <div class="device-stage device-stage--inner" id="inner-stage" aria-label="Inner screenshot preview">
-          <div class="inner-device-frame" data-device-frame="inner" data-crease="off">
+          <div class="inner-device-frame" data-device-frame="inner" data-crease="off" data-app-icons="off">
             <div class="inner-device-screen" id="inner-screen">
               <label class="upload-control" for="inner-upload" id="inner-upload-control">
                 <strong>Choose an Inner screenshot</strong>
@@ -177,6 +183,7 @@
             </div>
             <span class="inner-device-hinge-safe-layer" data-overlay="hinge-safe" aria-hidden="true"></span>
             <span class="inner-device-crease-overlay" id="inner-crease-overlay" data-overlay="crease" aria-hidden="true" hidden></span>
+            <span class="inner-device-app-icons" id="inner-app-icons-overlay" data-overlay="app-icons" aria-hidden="true" hidden><span class="app-icon"></span><span class="app-icon"></span><span class="app-icon"></span><span class="app-icon"></span><span class="app-icon"></span></span>
           </div>
         </div>
       </article>
@@ -207,6 +214,8 @@
       const fitModeButton = document.getElementById('fit-mode');
       const creaseToggleButton = document.getElementById('crease-toggle');
       const creaseOverlay = document.getElementById('inner-crease-overlay');
+      const appIconsToggleButton = document.getElementById('app-icons-toggle');
+      const appIconsOverlay = document.getElementById('inner-app-icons-overlay');
       const innerDeviceFrame = document.querySelector('.inner-device-frame');
       const status = document.getElementById('app-status');
       const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']);
@@ -216,6 +225,7 @@
       let previewFitMode = 'fill';
       let displayMode = 'both';
       let creaseEnabled = false;
+      let appIconsEnabled = false;
       function validateImageFile(file, displayName, input) { if (allowedImageTypes.has(file.type)) return true; input.value = ''; status.textContent = `${displayName} screenshot rejected. Choose a ${supportedTypeLabel} image.`; return false; }
       function applyPreviewFitMode(image) { if (image) image.dataset.fitMode = previewFitMode; }
       function applyCurrentFitModeToPreviews() { applyPreviewFitMode(outerScreen.querySelector('img')); applyPreviewFitMode(innerScreen.querySelector('img')); }
@@ -223,6 +233,7 @@
       function setFillMode() { previewFitMode = 'fill'; fillModeButton.setAttribute('aria-pressed', 'true'); fitModeButton.setAttribute('aria-pressed', 'false'); applyCurrentFitModeToPreviews(); status.textContent = 'Fill mode active. Screenshots cover each preview without changing their aspect ratio.'; }
       function setFitMode() { previewFitMode = 'fit'; fillModeButton.setAttribute('aria-pressed', 'false'); fitModeButton.setAttribute('aria-pressed', 'true'); applyCurrentFitModeToPreviews(); status.textContent = 'Fit mode active. Full screenshots stay visible without changing their aspect ratio.'; }
       function setCreaseEnabled(enabled) { creaseEnabled = Boolean(enabled); creaseToggleButton.setAttribute('aria-checked', String(creaseEnabled)); creaseOverlay.hidden = !creaseEnabled; previewWorkspace.dataset.crease = creaseEnabled ? 'on' : 'off'; innerDeviceFrame.dataset.crease = creaseEnabled ? 'on' : 'off'; status.textContent = `Inner crease ${creaseEnabled ? 'shown' : 'hidden'}. The Outer preview is unchanged.`; }
+      function setAppIconsEnabled(enabled) { appIconsEnabled = Boolean(enabled); appIconsToggleButton.setAttribute('aria-checked', String(appIconsEnabled)); appIconsOverlay.hidden = !appIconsEnabled; previewWorkspace.dataset.appIcons = appIconsEnabled ? 'on' : 'off'; innerDeviceFrame.dataset.appIcons = appIconsEnabled ? 'on' : 'off'; status.textContent = `Inner app icons ${appIconsEnabled ? 'shown' : 'hidden'}. The Outer preview is unchanged.`; }
       function revokeOuterObjectUrl() { if (outerObjectUrl) { URL.revokeObjectURL(outerObjectUrl); outerObjectUrl = null; } }
       function revokeInnerObjectUrl() { if (innerObjectUrl) { URL.revokeObjectURL(innerObjectUrl); innerObjectUrl = null; } }
       function restoreOuterUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'outer-upload-control'; label.htmlFor = 'outer-upload'; label.innerHTML = '<strong>Choose an Outer screenshot</strong><span id="outer-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; outerInput.setAttribute('aria-describedby', 'outer-upload-hint'); label.appendChild(outerInput); outerScreen.replaceChildren(label); outerScreen.classList.remove('has-image'); }
@@ -231,6 +242,7 @@
       function renderInnerFile(file) { revokeInnerObjectUrl(); innerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Inner display screenshot preview'; image.src = innerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { innerScreen.replaceChildren(image); innerScreen.classList.add('has-image'); status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeInnerObjectUrl(); innerInput.value = ''; restoreInnerUploadControl(); status.textContent = 'The Inner screenshot could not be decoded. Choose another image.'; }, { once: true }); }
       viewBothButton.addEventListener('click', setBothMode);
       creaseToggleButton.addEventListener('click', () => setCreaseEnabled(!creaseEnabled));
+      appIconsToggleButton.addEventListener('click', () => setAppIconsEnabled(!appIconsEnabled));
       fillModeButton.addEventListener('click', setFillMode); fitModeButton.addEventListener('click', setFitMode);
       outerInput.addEventListener('change', () => { const [file] = outerInput.files || []; if (!file || !validateImageFile(file, 'Outer', outerInput)) return; renderOuterFile(file); });
       innerInput.addEventListener('change', () => { const [file] = innerInput.files || []; if (!file || !validateImageFile(file, 'Inner', innerInput)) return; renderInnerFile(file); });
