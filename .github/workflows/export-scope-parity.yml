@@ -1,0 +1,37 @@
+name: Export scope parity browser QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/export-scope-parity.browser.test.mjs
+      - .github/workflows/export-scope-parity.yml
+  pull_request:
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/export-scope-parity.browser.test.mjs
+      - .github/workflows/export-scope-parity.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export-scope-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify T031 T032 T050 export scope and preview parity
+        run: node tests/export-scope-parity.browser.test.mjs
