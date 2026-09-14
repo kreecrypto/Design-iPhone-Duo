@@ -151,7 +151,7 @@
         <span class="toolbar-label" aria-hidden="true">Actions</span>
         <div class="toolbar-controls" data-control-set="actions">
           <button type="button" id="clear-all" class="toolbar-action" aria-controls="outer-stage inner-stage" disabled aria-disabled="true">Clear all</button>
-          <button type="button" id="export-button" class="toolbar-action toolbar-action--primary" aria-describedby="export-description" disabled aria-disabled="true">Export PNG</button>
+          <button type="button" id="export-button" class="toolbar-action toolbar-action--primary" aria-describedby="export-description">Export PNG</button>
         </div>
       </div>
     </div>
@@ -191,12 +191,13 @@
     </section>
     <section class="utility" aria-labelledby="export-title">
       <h2 id="export-title">Export</h2>
-      <p id="export-description">Export behavior will be implemented in the export tasks. The primary export action is represented in the toolbar and stays disabled until its compositor is ready.</p>
+      <p id="export-description">Export PNG creates the current device composition locally in this browser and downloads it without uploading screenshot content.</p>
       <p class="privacy-note">Privacy: screenshots are intended to be processed locally and must not be uploaded or persisted as image bytes.</p>
       <p id="app-status" role="status" aria-live="polite" aria-atomic="true"></p>
     </section>
   </main>
   <footer class="site-footer"><div class="shell">Independent concept/mockup project. Not an official Apple product or website.</div></footer>
+  <script src="src/export-compositor.js"></script>
   <script>
     (() => {
       const outerInput = document.getElementById('outer-upload');
@@ -217,6 +218,7 @@
       const creaseOverlay = document.getElementById('inner-crease-overlay');
       const appIconsToggleButton = document.getElementById('app-icons-toggle');
       const appIconsOverlay = document.getElementById('inner-app-icons-overlay');
+      const exportButton = document.getElementById('export-button');
       const innerDeviceFrame = document.querySelector('.inner-device-frame');
       const status = document.getElementById('app-status');
       const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']);
@@ -241,12 +243,41 @@
       function restoreInnerUploadControl() { const label = document.createElement('label'); label.className = 'upload-control'; label.id = 'inner-upload-control'; label.htmlFor = 'inner-upload'; label.innerHTML = '<strong>Choose an Inner screenshot</strong><span id="inner-upload-hint">PNG, JPEG, WebP, GIF, or SVG. Processing stays in this browser.</span>'; innerInput.setAttribute('aria-describedby', 'inner-upload-hint'); label.appendChild(innerInput); innerScreen.replaceChildren(label); innerScreen.classList.remove('has-image'); }
       function renderOuterFile(file) { revokeOuterObjectUrl(); outerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Outer display screenshot preview'; image.src = outerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { outerScreen.replaceChildren(image); outerScreen.classList.add('has-image'); status.textContent = `Outer screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeOuterObjectUrl(); outerInput.value = ''; restoreOuterUploadControl(); status.textContent = 'The Outer screenshot could not be decoded. Choose another image.'; }, { once: true }); }
       function renderInnerFile(file) { revokeInnerObjectUrl(); innerObjectUrl = URL.createObjectURL(file); const image = new Image(); image.alt = 'Uploaded Inner display screenshot preview'; image.src = innerObjectUrl; applyPreviewFitMode(image); image.addEventListener('load', () => { innerScreen.replaceChildren(image); innerScreen.classList.add('has-image'); status.textContent = `Inner screenshot loaded locally in ${previewFitMode === 'fill' ? 'Fill' : 'Fit'} mode.`; }, { once: true }); image.addEventListener('error', () => { revokeInnerObjectUrl(); innerInput.value = ''; restoreInnerUploadControl(); status.textContent = 'The Inner screenshot could not be decoded. Choose another image.'; }, { once: true }); }
+      function canvasToPngBlob(canvas) { return new Promise((resolve, reject) => { canvas.toBlob((blob) => { if (blob && blob.type === 'image/png') resolve(blob); else reject(new Error('PNG encoding failed.')); }, 'image/png'); }); }
+      function exportFilename(scope) { return `design-iphone-duo-${scope}.png`; }
+      async function downloadPng() {
+        if (!window.DuoExportCompositor) { status.textContent = 'PNG export is unavailable because the compositor did not load.'; return; }
+        exportButton.disabled = true;
+        exportButton.setAttribute('aria-disabled', 'true');
+        status.textContent = 'Preparing PNG locally…';
+        try {
+          const exported = window.DuoExportCompositor.render({ scope: displayMode });
+          const blob = await canvasToPngBlob(exported.canvas);
+          const downloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = exportFilename(exported.metadata.scope);
+          link.hidden = true;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+          status.textContent = `PNG downloaded as ${link.download}. Screenshot content stayed in this browser.`;
+        } catch (error) {
+          console.error(error);
+          status.textContent = 'PNG export could not be created. Try again in a supported browser.';
+        } finally {
+          exportButton.disabled = false;
+          exportButton.removeAttribute('aria-disabled');
+        }
+      }
       viewBothButton.addEventListener('click', setBothMode);
       creaseToggleButton.addEventListener('click', () => setCreaseEnabled(!creaseEnabled));
       appIconsToggleButton.addEventListener('click', () => setAppIconsEnabled(!appIconsEnabled));
       fillModeButton.addEventListener('click', setFillMode); fitModeButton.addEventListener('click', setFitMode);
       outerInput.addEventListener('change', () => { const [file] = outerInput.files || []; if (!file || !validateImageFile(file, 'Outer', outerInput)) return; renderOuterFile(file); });
       innerInput.addEventListener('change', () => { const [file] = innerInput.files || []; if (!file || !validateImageFile(file, 'Inner', innerInput)) return; renderInnerFile(file); });
+      exportButton.addEventListener('click', downloadPng);
       window.addEventListener('pagehide', () => { revokeOuterObjectUrl(); revokeInnerObjectUrl(); });
     })();
   </script>
