@@ -1,0 +1,37 @@
+name: Non-image preferences and storage privacy QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/non-image-preferences-storage.browser.test.mjs
+      - .github/workflows/non-image-preferences-storage.yml
+  pull_request:
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/non-image-preferences-storage.browser.test.mjs
+      - .github/workflows/non-image-preferences-storage.yml
+
+permissions:
+  contents: read
+
+jobs:
+  preference-storage-privacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify T028 T045 preference and storage acceptance
+        run: node tests/non-image-preferences-storage.browser.test.mjs
