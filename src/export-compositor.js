@@ -159,5 +159,49 @@
     return render({ ...options, scope: 'both' });
   }
 
-  window.DuoExportCompositor = Object.freeze({ render, renderBoth });
+  function ensureSaveFallbackGuidance(documentRef = document) {
+    const status = documentRef.querySelector('#app-status');
+    if (!status) return null;
+    let guidance = documentRef.querySelector('#save-fallback-guidance');
+    if (!guidance) {
+      guidance = documentRef.createElement('p');
+      guidance.id = 'save-fallback-guidance';
+      guidance.className = 'privacy-note';
+      guidance.setAttribute('role', 'note');
+      guidance.hidden = true;
+      guidance.textContent = 'If the PNG does not save in this in-app browser, use its menu to open this page in Safari or Chrome, then choose Export PNG again. Your screenshots remain local to this page.';
+      status.insertAdjacentElement('afterend', guidance);
+    }
+    return guidance;
+  }
+
+  function showSaveFallback(documentRef = document) {
+    const guidance = ensureSaveFallbackGuidance(documentRef);
+    if (guidance) guidance.hidden = false;
+    return guidance;
+  }
+
+  function installSaveFallbackObserver(documentRef = document) {
+    const status = documentRef.querySelector('#app-status');
+    if (!status || status.dataset.saveFallbackObserved === 'true') return;
+    status.dataset.saveFallbackObserved = 'true';
+    ensureSaveFallbackGuidance(documentRef);
+    const maybeShowGuidance = () => {
+      const message = status.textContent || '';
+      if (/could not be created|unavailable because the compositor did not load/i.test(message)) showSaveFallback(documentRef);
+    };
+    new MutationObserver(maybeShowGuidance).observe(status, { childList: true, characterData: true, subtree: true });
+    maybeShowGuidance();
+  }
+
+  function installWhenReady() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => installSaveFallbackObserver(document), { once: true });
+    } else {
+      installSaveFallbackObserver(document);
+    }
+  }
+
+  installWhenReady();
+  window.DuoExportCompositor = Object.freeze({ render, renderBoth, showSaveFallback });
 })();
