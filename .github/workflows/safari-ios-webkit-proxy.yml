@@ -1,0 +1,37 @@
+name: Safari iOS WebKit proxy QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/safari-ios-webkit-proxy.browser.test.mjs
+      - .github/workflows/safari-ios-webkit-proxy.yml
+  pull_request:
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/safari-ios-webkit-proxy.browser.test.mjs
+      - .github/workflows/safari-ios-webkit-proxy.yml
+
+permissions:
+  contents: read
+
+jobs:
+  safari-ios-webkit-proxy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright WebKit
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps webkit
+      - name: Verify T056 WebKit iPhone-profile proxy
+        run: node tests/safari-ios-webkit-proxy.browser.test.mjs
