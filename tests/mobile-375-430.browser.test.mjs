@@ -103,8 +103,8 @@ try {
     assert.ok(initial.export.left >= 0 && initial.export.right <= width, `${width}px Export PNG CTA must stay inside the viewport.`);
     assert.ok(initial.export.height >= 44, `${width}px Export PNG CTA must keep a 44px target.`);
     assert.ok(initial.export.bottom <= initial.outer.top + 1, `${width}px Export PNG CTA must not cover preview content.`);
-    assert.equal(initial.export.disabled, true, `${width}px export must remain disabled until the export implementation task lands.`);
-    assert.equal(initial.export.ariaDisabled, 'true', `${width}px disabled export must expose aria-disabled=true.`);
+    assert.equal(initial.export.disabled, false, `${width}px Export PNG CTA must be enabled after T039 implementation.`);
+    assert.equal(initial.export.ariaDisabled, null, `${width}px enabled export must not expose aria-disabled=true.`);
 
     await page.locator('#fit-mode').click();
     await page.locator('#outer-upload').setInputFiles({ name: `outer-${width}.svg`, mimeType: 'image/svg+xml', buffer: svgBuffer });
@@ -138,4 +138,4 @@ try {
   await browser.close();
 }
 
-console.log('T053 mobile QA passed at 375/390/430: stable layout, visible non-overlapping export CTA, local uploads, and usable controls.');
+console.log('T053 mobile QA passed at 375/390/430: stable layout, visible enabled export CTA, local uploads, and usable controls.');
