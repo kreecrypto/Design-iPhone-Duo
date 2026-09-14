@@ -3,7 +3,6 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
-const root = new URL('../', import.meta.url);
 const html = await readFile(new URL('../index.html', import.meta.url));
 const compositor = await readFile(new URL('../src/export-compositor.js', import.meta.url));
 const outerSvg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="780"><rect width="360" height="780" fill="#c33"/></svg>');
@@ -69,7 +68,7 @@ try {
     assert.match(imageSources.outer ?? '', /^blob:/, 'Outer upload remains a local blob URL.');
     assert.match(imageSources.inner ?? '', /^blob:/, 'Inner upload remains a local blob URL.');
 
-    const unexpectedRequests = requests.filter(({ url, method }) => !url.startsWith(origin) || method !== 'GET');
+    const unexpectedRequests = requests.filter(({ url, method }) => method !== 'GET' || (!url.startsWith(origin) && !url.startsWith('blob:')));
     assert.deepEqual(unexpectedRequests, [], `Export must not create external/non-GET network requests at ${width}px.`);
     await page.close();
   }
@@ -83,4 +82,4 @@ async function expectEnabled(locator, message) {
   assert.equal(await locator.getAttribute('aria-disabled'), null, `${message} aria-disabled must be absent while idle.`);
 }
 
-console.log('T039 Download PNG browser QA passed at 375/390/430/1024: deterministic filename, real PNG Blob, local uploads, and no export network request.');
+console.log('T039 Download PNG browser QA passed at 375/390/430/1024: deterministic filename, real PNG Blob, local uploads, and no external export network request.');
