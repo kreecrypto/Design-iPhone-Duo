@@ -1,0 +1,41 @@
+name: Download PNG browser QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/download-png.browser.test.mjs
+      - tests/toolbar-controls.test.mjs
+      - .github/workflows/download-png.yml
+  pull_request:
+    paths:
+      - index.html
+      - src/export-compositor.js
+      - tests/download-png.browser.test.mjs
+      - tests/toolbar-controls.test.mjs
+      - .github/workflows/download-png.yml
+
+permissions:
+  contents: read
+
+jobs:
+  download-png:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify toolbar export contract
+        run: node tests/toolbar-controls.test.mjs
+      - name: Verify T039 PNG Blob download
+        run: node tests/download-png.browser.test.mjs
