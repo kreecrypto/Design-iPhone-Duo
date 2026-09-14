@@ -196,6 +196,21 @@
     dialog.style.padding = '20px';
     dialog.style.boxShadow = '0 24px 64px rgba(17,19,24,.24)';
     dialog.innerHTML = '<h2 id="export-dialog-title" style="margin:0 0 8px;font-size:1.2rem">Exporting PNG</h2><p id="export-dialog-description" style="margin:0 0 16px;color:#505762">Your PNG is created locally in this browser. Close this dialog after the download starts.</p><button type="button" id="export-dialog-close" style="min-height:44px;padding:0 16px;border:1px solid #c9ced6;border-radius:10px;background:#fff;font:inherit;font-weight:650">Close</button>';
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const focusable = [...dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+        .filter((element) => !element.hidden && element.getClientRects().length > 0);
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (focusable.length === 1 || (!event.shiftKey && documentRef.activeElement === last) || (event.shiftKey && documentRef.activeElement === first)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    });
     dialog.addEventListener('close', () => {
       const returnFocus = dialog.__returnFocus;
       dialog.__returnFocus = null;
