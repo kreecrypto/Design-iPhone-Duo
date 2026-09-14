@@ -1,0 +1,35 @@
+name: Crease overlay browser QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - tests/crease-overlay.browser.test.mjs
+      - .github/workflows/crease-overlay.yml
+  pull_request:
+    paths:
+      - index.html
+      - tests/crease-overlay.browser.test.mjs
+      - .github/workflows/crease-overlay.yml
+
+permissions:
+  contents: read
+
+jobs:
+  crease-overlay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify Inner crease toggle and state preservation
+        run: node tests/crease-overlay.browser.test.mjs
