@@ -301,7 +301,7 @@
     };
   }
 
-  function writePreferences(documentRef = document, storage = window.localStorage) {
+  function writePreferences(documentRef, storage) {
     try {
       storage.setItem(PREFERENCE_KEY, JSON.stringify(collectPreferences(documentRef)));
       return true;
@@ -310,7 +310,7 @@
     }
   }
 
-  function restorePreferences(documentRef = document, storage = window.localStorage) {
+  function restorePreferences(documentRef, storage) {
     const prefs = readPreferences(storage);
     if (!prefs) return false;
     documentRef.querySelector(`#view-${prefs.viewMode}`)?.click();
@@ -322,13 +322,22 @@
     return true;
   }
 
+  function getPreferenceStorage() {
+    try {
+      return window.localStorage;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function installPreferencePersistence(documentRef = document) {
-    if (!window.localStorage || documentRef.documentElement.dataset.preferencePersistenceInstalled === 'true') return;
+    const storage = getPreferenceStorage();
+    if (!storage || documentRef.documentElement.dataset.preferencePersistenceInstalled === 'true') return;
     documentRef.documentElement.dataset.preferencePersistenceInstalled = 'true';
-    restorePreferences(documentRef, window.localStorage);
+    restorePreferences(documentRef, storage);
     const preferenceControls = new Set(['view-both', 'view-outer', 'view-inner', 'fill-mode', 'fit-mode', 'crease-toggle', 'app-icons-toggle']);
     documentRef.addEventListener('click', (event) => {
-      if (preferenceControls.has(event.target?.id)) queueMicrotask(() => writePreferences(documentRef, window.localStorage));
+      if (preferenceControls.has(event.target?.id)) queueMicrotask(() => writePreferences(documentRef, storage));
     });
   }
 
