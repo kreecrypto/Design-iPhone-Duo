@@ -252,10 +252,42 @@
     maybeShowGuidance();
   }
 
+  function installViewModes(documentRef = document) {
+    const workspace = documentRef.querySelector('#preview-workspace');
+    const outerPanel = documentRef.querySelector('#outer-panel');
+    const innerPanel = documentRef.querySelector('#inner-panel');
+    const status = documentRef.querySelector('#app-status');
+    const buttons = {
+      both: documentRef.querySelector('#view-both'),
+      outer: documentRef.querySelector('#view-outer'),
+      inner: documentRef.querySelector('#view-inner')
+    };
+    if (!workspace || !outerPanel || !innerPanel || Object.values(buttons).some((button) => !button)) return;
+
+    const setMode = (mode) => {
+      workspace.dataset.viewMode = mode;
+      outerPanel.hidden = mode === 'inner';
+      innerPanel.hidden = mode === 'outer';
+      for (const [name, button] of Object.entries(buttons)) button.setAttribute('aria-pressed', String(name === mode));
+      if (status) status.textContent = mode === 'both'
+        ? 'Both view active. Outer and Inner previews remain visible with their current image state.'
+        : `${mode === 'outer' ? 'Outer' : 'Inner'} view active. Hidden preview state remains loaded locally.`;
+    };
+
+    for (const [mode, button] of Object.entries(buttons)) {
+      button.disabled = false;
+      button.removeAttribute('aria-disabled');
+      if (button.dataset.viewModeInstalled === 'true') continue;
+      button.dataset.viewModeInstalled = 'true';
+      button.addEventListener('click', () => setMode(mode));
+    }
+  }
+
   function installWhenReady() {
     const install = () => {
       installSaveFallbackObserver(document);
       installExportDialog(document);
+      installViewModes(document);
     };
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', install, { once: true });
