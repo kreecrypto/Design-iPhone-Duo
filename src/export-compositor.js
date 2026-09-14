@@ -181,6 +181,49 @@
     return guidance;
   }
 
+  function ensureExportDialog(documentRef = document) {
+    let dialog = documentRef.querySelector('#export-dialog');
+    if (dialog) return dialog;
+
+    dialog = documentRef.createElement('dialog');
+    dialog.id = 'export-dialog';
+    dialog.setAttribute('aria-labelledby', 'export-dialog-title');
+    dialog.setAttribute('aria-describedby', 'export-dialog-description');
+    dialog.style.width = 'min(420px, calc(100% - 32px))';
+    dialog.style.maxWidth = '100%';
+    dialog.style.border = '1px solid #dfe3e8';
+    dialog.style.borderRadius = '16px';
+    dialog.style.padding = '20px';
+    dialog.style.boxShadow = '0 24px 64px rgba(17,19,24,.24)';
+    dialog.innerHTML = '<h2 id="export-dialog-title" style="margin:0 0 8px;font-size:1.2rem">Exporting PNG</h2><p id="export-dialog-description" style="margin:0 0 16px;color:#505762">Your PNG is created locally in this browser. Close this dialog after the download starts.</p><button type="button" id="export-dialog-close" style="min-height:44px;padding:0 16px;border:1px solid #c9ced6;border-radius:10px;background:#fff;font:inherit;font-weight:650">Close</button>';
+    dialog.addEventListener('close', () => {
+      const returnFocus = dialog.__returnFocus;
+      dialog.__returnFocus = null;
+      if (!returnFocus || typeof returnFocus.focus !== 'function') return;
+      const restore = () => {
+        if (!returnFocus.disabled && returnFocus.isConnected) returnFocus.focus();
+        else setTimeout(() => { if (!returnFocus.disabled && returnFocus.isConnected) returnFocus.focus(); }, 100);
+      };
+      requestAnimationFrame(restore);
+    });
+    dialog.querySelector('#export-dialog-close')?.addEventListener('click', () => dialog.close());
+    documentRef.body.appendChild(dialog);
+    return dialog;
+  }
+
+  function installExportDialog(documentRef = document) {
+    const exportButton = documentRef.querySelector('#export-button');
+    if (!exportButton || exportButton.dataset.exportDialogInstalled === 'true') return;
+    exportButton.dataset.exportDialogInstalled = 'true';
+    const dialog = ensureExportDialog(documentRef);
+    exportButton.addEventListener('click', () => {
+      if (!dialog || typeof dialog.showModal !== 'function' || dialog.open) return;
+      dialog.__returnFocus = exportButton;
+      dialog.showModal();
+      dialog.querySelector('#export-dialog-close')?.focus();
+    }, { capture: true });
+  }
+
   function installSaveFallbackObserver(documentRef = document) {
     const status = documentRef.querySelector('#app-status');
     if (!status || status.dataset.saveFallbackObserved === 'true') return;
@@ -195,10 +238,14 @@
   }
 
   function installWhenReady() {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => installSaveFallbackObserver(document), { once: true });
-    } else {
+    const install = () => {
       installSaveFallbackObserver(document);
+      installExportDialog(document);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', install, { once: true });
+    } else {
+      install();
     }
   }
 
